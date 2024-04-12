@@ -2,7 +2,7 @@
   <div class="container">
     <div class="row">
       <div class="col-xl-2" v-for="file in previewFiles" :key="file">
-        <ImgCard :previewFile="file" v-if="previewFiles"/>
+        <ImgCard :previewFile="file" v-if="previewFiles" />
       </div>
       <div class="col-12 d-flex justify-content-center align-items-center mt-5 p-5 border"
         @drop.prevent="dropFiles($event)" @dragover.prevent>
@@ -11,8 +11,12 @@
           <i class="bi bi-cloud-arrow-up fs-3"></i>
         </label>
       </div>
-      <div class="col-12 d-flex justify-content-end mt-4">
-        <button class="btn btn-primary px-5" @click="uploadFiles">Upload</button>
+      <div class="col-12 d-flex justify-content-end my-4">
+        <button class="btn btn-primary px-5 me-4" @click="uploadFiles">Upload</button>
+        <button class="btn btn-primary px-5" @click="deleteFiles">Delete</button>
+      </div>
+      <div class="col-xl-2" v-for="f in fileList" :key="f">
+        <ImgCard :file="f" v-if="fileList" />
       </div>
     </div>
   </div>
@@ -25,6 +29,7 @@ import ImgCard from "@/components/ImgCard";
 
 const previewFiles = ref(null);
 const upFiles = ref(null);
+const fileList = ref(null);
 
 // 드래그&드랍
 const dropFiles = (e) => {
@@ -55,12 +60,39 @@ const uploadFiles = async () => {
       "Content-Type": "multipart/form-data",
     },
   }
-  
+
   await axios.post("/api/upload", form, headers).catch(err => { console.log(err); })
-  
+
   previewFiles.value = null;
   upFiles.value = null;
+  fileList.value = null;
+  
+  setTimeout(() => {
+    getFiles();
+  }, 1000)
 }
+
+// 업로드된 파일목록 불러오기
+const getFiles = async () => {
+  const { data } = await axios.get("/api/filelist").catch(err => { console.log(err); });
+
+  if( !data ) return;
+
+  try {
+    fileList.value = data;
+  } catch(err) {
+    console.log(err);
+  }
+}
+
+getFiles();
+
+// 업로드 된 파일 삭제
+const deleteFiles = async () => {
+  await axios.delete("/api/delete").catch(err => { console.log(err); });
+  getFiles();
+}
+
 </script>
 
 <style lang="scss" scoped></style>

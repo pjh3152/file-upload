@@ -1,6 +1,7 @@
 const express = require("express")
 const multer = require("multer")
 const path = require("path")
+const fs = require("fs")
 const app = express()
 const port = 3000;
 
@@ -24,17 +25,29 @@ const multerMiddleware = upload.array("files")
 app.use(express.json())
 app.use(multerMiddleware);
 
-app.get("/", (req, res) => {
+app.get("/api/filelist", async (req, res) => {
+  await fs.readdir("./Upload", (err, files) => {
+    res.send(files);
+  })
 });
 
 app.post("/api/upload", async (req, res) => {
   // console.log(req.files[0].originalname);
   // const ext = path.extname(req.files[0].originalname); 
   // console.log(path.basename(req.files[0].originalname, ext));
-
   console.log(req.body.title);
   console.log(req.body.content);
   res.send("success");
+});
+
+app.delete("/api/delete", async (req, res) => {
+  await fs.readdir("./Upload", (err, files) => {
+    files.forEach(file => fs.unlink("./Upload/" + file, err => {
+      if(err) console.log(err);
+    }));
+    
+    res.send("success");
+  })
 });
 
 app.listen(port, () => {
